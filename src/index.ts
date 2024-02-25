@@ -6,6 +6,7 @@ const jwt = require('jsonwebtoken');
 const db = require("../models");
 const User = db.User;
 const Plan = db.Plan;
+const Purchase = db.Purchase;
 
 const jwtSecret = process.env.JWT_KEY
 
@@ -45,7 +46,7 @@ app.post("/login", async (req: Request, res: Response) => {
    }else{
       const user = await User.findOne({where: { email: email, password: password}})
       if (user){
-          const token = jwt.sign({ userId: user.id }, jwtSecret, { expiresIn: '1h' });
+          const token = jwt.sign({ userId: user.id }, jwtSecret, { expiresIn: '7d' });
           res.status(200)
           res.json({ token });
       }else{
@@ -59,13 +60,24 @@ app.post("/purchase",authenticateToken, async (req: any, res: Response) => {
   const userToken = req.user;
   const userId = userToken.userId;
   const planId = req.body.planId
-  const user = await User.findOne({where: { id: userToken.userId}})
+  
   if(!userId || !planId){
       res.status(400)
-      res.send("User or Plan is missing");
+      res.send("UserId or PlanId is missing");
    }
    else{
-    res.json(user)
+    
+    const user = await User.findOne({where: { id: userId}})
+    const plan = await Plan.findOne({where: { id: planId}})
+
+    if(user && plan){
+      const purchase = await Purchase.create({userId: userId, planId: planId})
+      res.status(201)
+      res.json(purchase)
+    }else{
+      res.status(400)
+      res.send("User or Plan is missing");
+    }
    }
   
 });
