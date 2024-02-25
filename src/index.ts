@@ -2,6 +2,7 @@ import express, { Express, Request, Response } from "express";
 import bodyParser from "body-parser";
 import dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
+import cors from 'cors';
 
 dotenv.config();
 
@@ -15,6 +16,7 @@ const jwtSecret: string = process.env.JWT_KEY!;
 const app: Express = express();
 
 app.use(bodyParser.json({ limit: "100mb" }));
+app.use(cors())
 
 const authenticateToken = (req: any, res: Response, next: Function) => {
     const authHeader = req.headers['authorization'];
@@ -43,7 +45,7 @@ app.get("/plans", async (req: Request, res: Response) => {
     }
 });
 
-app.post("/login", async (req: Request, res: Response) => {
+app.post("/login", cors(), async (req: Request, res: Response) => {
     const { email, password } = req.body;
 
     try {
